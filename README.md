@@ -1,55 +1,183 @@
+# Outline for running this as a live session
 
-# The OpenSAFELY Demo Repo
+## Dataset definition
 
-This project serves as a teaching resource for project pipelines within OS, which vary in complexity (demonstrated using branches), as well as serving as an investigation into inhaler prescribing behaviours surrounding the pandemic.
+Work through a stripped back version of the dataset definition and add back chunks at a time
+  - [dummy data](https://github.com/opensafely/demo_repo/tree/main/dummy_tables): talk about the different methods of dummy data generation
 
-Documentation explaining and contextualising the code in this repository can be found in the README.md files alongside the code, as well as within code comments in the code files themselves.
+Add back in ethnicity
 
-## Repository structure
+  - add ethnicity codelist using `codelists add`
+  
+    `opensafely codelists add https://www.opencodelists.org/codelist/opensafely/ethnicity-snomed-0removed/22911876/`
 
-This repository was created from the [OpenSAFELY Research Template](https://github.com/opensafely/research-template), and follows the same directory structure and best practices laid out by that template.
+  - add ethnicity codelist to `codelists.py`
 
-Where this repository differs from a standard research project is that in this repository, we have three branches (main, pipeline_2 and pipeline_3). These three branches represent different levels of complexity in the logic used for dataset selection, and the resulting analyses made possible by that.
+```
+# ethnicity codes; see category columns here: https://www.opencodelists.org/codelist/opensafely/ethnicity-snomed-0removed/22911876/
+ethnicity_codes = codelist_from_csv(
+  "codelists/opensafely-ethnicity-snomed-0removed.csv",
+  column = "code",
+  category_column = "Grouping_6",
+)
+```
 
-* `main` is the first level of complexity: we select a 'simple' dataset of patients with certain diagnosis and medication histories, working with a single index date and considering a single interval of time.
-* `pipeline_2` is the second level of complexity. In this scenario, we select three 'simple' datasets of patients, considering three intervals of time, to analyse differences inhaler prescribing behaviour across a broader time period.
-* `pipeline_3` is the third level. In this pipeline, we select datasets of different cohorts of patients, with different medication and diagnosis histories, to analyse differences in inhaler prescribing behaviour across multiple time periods _and_ across multiple cohort profiles.
+  - add ethnicity variable to dataset definition
 
-In a standard OpenSAFELY research repository, all runnable research code would typically be in the `main` branch, and other branches would be used exclusively for development (with those branches being merged into `main` via a pull request once their development was complete). The usage of branches in this repository represents the stages a research project might go through over time, evolving from a something simple (as in this repository's `main` branch) through to involving more complex data selection and analysis (`pipeline_2` and `pipeline_3`).
+```
+# patient ethnicity (5 groups from 2001 census)
+dataset.latest_ethnicity_group = (
+    clinical_events.where(clinical_events.snomedct_code.is_in(codelists.ethnicity_codes))
+    .where(clinical_events.date.is_on_or_before(index_date))
+    .sort_by(clinical_events.date)
+    .last_for_patient().snomedct_code
+    .to_category(codelists.ethnicity_codes)
+)
+```
 
-## Dummy data and OpenSAFELY
+Then add censoring chunk
 
-When working in OpenSAFELY, researchers don't ever have access to sensitive data. The real databases are only queried when jobs are submitted through the [OpenSAFELY Jobs Site](jobs.opensafely.org), and submitting a job every time one needs to debug an issue would be extremely time-intensive and difficult. 
+```
+# date of death
+dataset.death_date = (case(
+    when(ons_deaths.date.is_not_null())
+    .then(ons_deaths.date),
+    when((ons_deaths.date.is_null()) & (patients.date_of_death.is_not_null()))
+    .then(patients.date_of_death),
+    otherwise = None)
+)
 
-A dataset definition, when used in the `generate-dataset` action, is a function that takes in a database of patient records and outputs a dataset. During development, we fake the input to this function, typically using dummy data tables. We may optionally choose to fake the output too, as this output is what our analysis code takes as an input, and we need to test that code too.
+# date of deregistration
+dataset.deregistration_date = practice_registrations.for_patient_on(index_date).end_date
 
-### Generating dummy data tables and datasets
+# define censoring date - earliest of death, deregistration or end of study period
+dataset.censor_date = minimum_of(dataset.death_date, dataset.deregistration_date, end_date)
+```
 
-When getting started, researchers often use [ehrQL's built-in dummy data generation](https://docs.opensafely.org/ehrql/how-to/dummy-data/#let-ehrql-generate-a-dummy-dataset-from-your-dataset-definition) as-is, which is 'good enough' to enable development of dataset definition code. However, while ehrQL is able to output _plausible_ data, it can't automatically determine what _realistic_ data might look like, and so the autogenerated dummy data is usually insufficient to support downstream analysis code.
+Finally add asthma in
 
-As a next step, it's possible to output ehrQL's autogenerated dummy tables (using the [create-dummy-tables](https://docs.opensafely.org/ehrql/reference/cli/#create-dummy-tables) command), then augment that data with a custom script (often using codelists). This allows a researcher to ensure that the dummy tables contain enough of the features of interest (clinical events, medication histories, addresses with IMD data, and so on) to support downstream analysis. This data can then be used during development by [passing in a command-line parameter](https://docs.opensafely.org/ehrql/reference/cli/#generate-dataset.dummy-tables) to the `generate-dataset` action in the `project.yaml`. This is the approach used in this showcase project.
+```
+# define medication date to find recent prescriptions
+medication_date = index_date - years(1)
 
-If working with a particularly complex dataset definition, it may be too cumbersome or time-consuming to engineer dummy tables that yield a suitable dataset once the dataset definition has selected a cohort from them. In this case, it can be useful to - instead of 'faking' the _input_ data (the tables) - instead fake the _output_ (the dataset itself). A researcher can write a custom script to generate a datset of patients that can support the downstream analysis, and then use that dataset as the input to the analysis (as opposed the actual output of their `generate-dataset` action). The downside here is that, during testing, running the whole pipeline will now not exercise the logic in the dataset definition file, because its output is being ignored (and the fake data substituted). To test the logic in the dataset definition, we recommend using [assurance testing](https://docs.opensafely.org/ehrql/how-to/test-dataset-definition/), which is used in each pipeline of this repository.
+# create combined asthma medications codelist
+asthma_meds = (
+    codelists.asthma_oral_medications  # oral medications
+    + codelists.asthma_inhaled_medications  # inhaled medications
+)
 
+has_asthma_diagnosis = (
+    clinical_events.where(clinical_events.date.is_on_or_before(index_date))
+    .where(clinical_events.snomedct_code.is_in(codelists.asthma_codelist))
+    .exists_for_patient()
+)
 
----
+has_asthma_medication = (
+    medications.where(medications.date.is_on_or_between(medication_date, index_date))
+    .where(medications.dmd_code.is_in(asthma_meds))
+    .exists_for_patient()
+)
 
-[View on OpenSAFELY](https://jobs.opensafely.org/repo/https%253A%252F%252Fgithub.com%252Fopensafely%252Fdemo_repo)
+dataset.asthma = has_asthma_diagnosis & has_asthma_medication
+```
 
-Details of the purpose and any published outputs from this project can be found at the link above.
+Mention ability to create functions (in variable lib) - these will then be used in the measures definition
 
-The contents of this repository MUST NOT be considered an accurate or valid representation of the study or its purpose. 
-This repository may reflect an incomplete or incorrect analysis with no further ongoing work.
-The content has ONLY been made public to support the OpenSAFELY [open science and transparency principles](https://www.opensafely.org/about/#contributing-to-best-practice-around-open-science) and to support the sharing of re-usable code for other subsequent users.
-No clinical, policy or safety conclusions must be drawn from the contents of this repository.
+## Measures definition
+  
+Walk through measures definition, starting with a cut back version and first add in the set up
 
-# About the OpenSAFELY framework
+```
+# define medication date to find recent prescriptions
+medication_date = index_date - years(1)
 
-The OpenSAFELY framework is a Trusted Research Environment (TRE) for electronic
-health records research in the NHS, with a focus on public accountability and
-research quality.
+# create combined asthma medications codelist
+asthma_meds = (
+    codelists.asthma_oral_medications + # oral medications
+    codelists.asthma_inhaled_medications # inhaled medications
+)
 
-Read more at [OpenSAFELY.org](https://opensafely.org).
+# identify whether patient is asthmatic
+has_asthma = (
+    # has a diagnosis code
+    (has_prior_event(codelists.asthma_codelist, index_date))
+    # and has been prescribed medications in year prior to index
+    & (has_prior_meds(
+        asthma_meds,
+        index_date,
+        where = medications.date.is_on_or_between(medication_date, index_date)
+    ))
+)
 
-# Licences
-As standard, research projects have a MIT license. 
+# identify patients diagnosed with asthma in interval
+diagnosed_with_asthma = (
+    clinical_events.where(clinical_events.snomedct_code.is_in(codelists.asthma_codelist))
+    .where(clinical_events.date.is_during(INTERVAL))
+    .exists_for_patient()
+)
+
+# get the age of particpants
+age = patients.age_on(index_date)
+
+# classify ages
+age_group = (case(
+    when((age >= 12) & (age < 18)).then("adolescent"),
+    when((age >= 18) & (age < 60)).then("adult"),
+    when((age >= 60) & (age <= 100)).then("older_adult")
+))
+
+# define default denominator
+denominator = (
+    registered_patients
+    & age_of_interest
+    & sex_known
+    & was_alive
+    # additional check for registration at start of every interval to remove those 
+    # who deregistered DURING a previous interval
+    & practice_registrations.exists_for_patient_on(INTERVAL.start_date)
+)
+measures.define_defaults(
+    denominator = denominator
+)
+```
+
+Then create two simple measures
+
+```
+## yearly measures
+
+# define the measure of interest: those with asthma, by age group
+measures.define_measure(
+    "measure_had_prescription_by_age_yearly",
+    numerator = has_asthma,
+    group_by = {"age_group": age_group},
+    intervals = intervals_years,
+)
+
+## monthly measures
+
+# define the measure of interest: monthly incident asthma, by age group
+measures.define_measure(
+    "measure_had_incident_asthma_by_age_monthly",
+    numerator = diagnosed_with_asthma,
+    group_by = {"age_group": age_group},
+    intervals = intervals_months,
+)
+```
+
+## Pipeline Overview
+
+Highlight the main steps using the project.yaml:
+
+- generate_dataset
+- process_dataset
+   - simple processing of variables to prepare for analysis
+- check_dataset
+   - sense checks of aggregate variable values
+- summarise_dataset
+   - example of creating a Table 1 for a paper
+- analyse_dataset
+   - simple regression analysis
+- generate_measures
+
+## Final Step: run `opensafely run run_all` in terminal
