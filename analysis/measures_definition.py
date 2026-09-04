@@ -1,24 +1,30 @@
-# import the necessary ehrQL functionalities and tables
-from ehrql import create_measures, years, case, when, months
-from ehrql.measures import INTERVAL
-from ehrql.tables.tpp import (
-    patients,
-    clinical_events,
-    medications,
-    ons_deaths,
-    practice_registrations
-)
+# import python functionalities
+import json
+from pathlib import Path
+from datetime import datetime, date
 
+# import the necessary ehrQL functionalities and tables
+from ehrql import create_measures, years, case, when, months, get_parameter
+from ehrql.measures import INTERVAL
+from ehrql.tables.tpp import patients, clinical_events, medications, ons_deaths, practice_registrations
+
+# import variables which are defined in a separate file
+from variable_lib import (
+    has_prior_event,
+    has_prior_meds
+)
 # import the codelists defined in a separate file
 import codelists
 
-# import functions from variable library
-from variable_lib import has_prior_event, has_prior_meds
+# import study dates defined in "./analysis/design/study-dates.R" script and then exported
+study_dates = json.loads(
+  Path("analysis/design/study-dates.json").read_text(),
+)
 
 # define start of follow up period
-index_date = "2020-03-01" 
+index_date = datetime.strptime(study_dates[get_parameter(name="period")[0]], "%Y-%m-%d").date() 
 
-# define the patients who have are registered on index date
+# define the patients who have were registered on index date
 registered_patients = (
     practice_registrations.exists_for_patient_on(index_date)
 )
@@ -36,8 +42,12 @@ death_date = ons_deaths.date.when_null_then(patients.date_of_death)
 was_alive = death_date.is_after(index_date) | death_date.is_null()
 
 # define the interevals to be used for the measures
-intervals_years = years(2).starting_on(index_date)
-intervals_months = months(24).starting_on(index_date)
+if index_date == date(2020, 3, 1) :
+    intervals_years = years(2).starting_on(index_date)
+    intervals_months = months(24).starting_on(index_date)
+else :
+    intervals_years = years(3).starting_on(index_date)
+    intervals_months = months(36).starting_on(index_date) 
 
 # create ehrQL measures object for configuration
 measures = create_measures()

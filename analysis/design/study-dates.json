@@ -1,0 +1,8 @@
+{
+  "pre_pandemic_start": "2017-03-01",
+  "pre_pandemic_end": "2020-02-29",
+  "pandemic_start": "2020-03-01",
+  "pandemic_end": "2022-02-28",
+  "post_pandemic_start": "2022-03-01",
+  "post_pandemic_end": "2025-02-28"
+}

@@ -1,5 +1,18 @@
+# import python functionalities
+import json
+from pathlib import Path
+from datetime import datetime, date
+
 # import the necessary ehrQL functionalities and tables
-from ehrql import create_dataset, months, years, case, when, minimum_of
+from ehrql import (
+    create_dataset,
+    months,
+    years,
+    case,
+    when,
+    minimum_of,
+    get_parameter
+)
 from ehrql.tables.tpp import (
     patients, 
     medications,
@@ -15,13 +28,18 @@ import codelists
 # create ehrQL generated dummy dataset
 dataset = create_dataset() 
 
+# import study dates defined in "./analysis/design/study-dates.R" script and then exported
+study_dates = json.loads(
+  Path("analysis/design/study-dates.json").read_text(),
+)
+
 # define start of follow up period
-index_date = "2020-03-01" 
+index_date = datetime.strptime(study_dates[get_parameter(name="period")[0]], "%Y-%m-%d").date()
 
 # define end of follow up period
-end_date = "2022-02-28"
+end_date = datetime.strptime(study_dates[get_parameter(name="period")[1]], "%Y-%m-%d").date()
 
-# define the patients who have the required continuous registration (in this case 3 months)
+# define the patients who have were registered on index date
 registered_patients = (
     practice_registrations.exists_for_patient_on(index_date)
 )
