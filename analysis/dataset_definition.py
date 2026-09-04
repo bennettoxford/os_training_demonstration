@@ -60,56 +60,5 @@ dataset.age = patients.age_on(index_date)
 # sex
 dataset.sex = patients.sex 
 
-# patient ethnicity (5 groups from 2001 census)
-dataset.latest_ethnicity_group = (
-    clinical_events.where(clinical_events.snomedct_code.is_in(codelists.ethnicity_codes))
-    .where(clinical_events.date.is_on_or_before(index_date))
-    .sort_by(clinical_events.date)
-    .last_for_patient().snomedct_code
-    .to_category(codelists.ethnicity_codes)
-)
-
 # patient IMD - from the LSOA associated with their address
 dataset.imd_quintile = addresses.for_patient_on(index_date).imd_quintile
-
-## get information for censoring
-
-# date of death
-dataset.death_date = (case(
-    when(ons_deaths.date.is_not_null())
-    .then(ons_deaths.date),
-    when((ons_deaths.date.is_null()) & (patients.date_of_death.is_not_null()))
-    .then(patients.date_of_death),
-    otherwise = None)
-)
-
-# date of derigstration
-dataset.deregistration_date = practice_registrations.for_patient_on(index_date).end_date
-
-# define censoring date - earliest of death, deregistration or end of study period
-dataset.censor_date = minimum_of(dataset.death_date, dataset.deregistration_date, end_date)
-
-## define patient comorbidities to extract
-
-# define medication date to find recent prescriptions
-medication_date = index_date - years(1)
-
-# create combined asthma medications codelist
-asthma_meds = (
-    codelists.asthma_oral_medications  # oral medications
-    + codelists.asthma_inhaled_medications  # inhaled medications
-)
-
-has_asthma_diagnosis = (
-    clinical_events.where(clinical_events.date.is_on_or_before(index_date))
-    .where(clinical_events.snomedct_code.is_in(codelists.asthma_codelist))
-    .exists_for_patient()
-)
-
-has_asthma_medication = (
-    medications.where(medications.date.is_on_or_between(medication_date, index_date))
-    .where(medications.dmd_code.is_in(asthma_meds))
-    .exists_for_patient()
-)
-
-dataset.asthma = has_asthma_diagnosis & has_asthma_medication

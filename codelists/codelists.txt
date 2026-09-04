@@ -19,5 +19,3 @@ nhs-drug-refsets/airsbrdinhdrug_cod/20250627/
 nhsd-primary-care-domain-refsets/rev_cod/20250627/
 
 nhsd-primary-care-domain-refsets/copdrvw_cod/20250627/
-
-opensafely/ethnicity-snomed-0removed/22911876/
