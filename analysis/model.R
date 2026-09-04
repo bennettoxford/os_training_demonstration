@@ -19,9 +19,9 @@ df <- read_feather(
     )
   )
 
-# model quantity
+# model asthma
 model <- lm(
-  salbutamol_quantity ~ age + sex + ethnicity + imd_quintile + asthma + copd + year,
+  asthma ~ age + sex + ethnicity + imd_quintile,
   data = df
 )
 
@@ -33,11 +33,10 @@ model_tidy <- model %>%
   tidy_add_term_labels(labels = c(age = "Age (Years)")) %>%
   tidy_remove_intercept() %>% 
   mutate(
-    var_label = if_else(var_label == "copd", "COPD", str_to_title(var_label)),
-    label = case_when(
-      label %in% c("TRUE", "FALSE") ~ paste0(var_label, " (", str_to_title(label), ")"),
-      var_label == "Year" ~ paste0("Study Year ", label),
-      TRUE ~ str_to_title(label))
+    var_label = str_to_title(var_label),
+    label = if_else(
+      label %in% c("TRUE", "FALSE"), paste0(var_label, " (", str_to_title(label), ")"),
+      str_to_title(label))
   )
 
 # save the tidied model

@@ -40,7 +40,7 @@ vars <- c("age_group", "sex", "ethnicity", "imd_quintile")
 for (var in vars) {
   
   # use table() to get frequency tables for categorical variables
-  tables[[var]] <- table(df[[var]], df$year)
+  tables[[var]] <- table(df[[var]])
   
 }
 
@@ -55,8 +55,8 @@ long_table <- do.call(
 )
 
 # rename and reorder columns
-colnames(long_table) <- c("category", "year", "count", "group")
-long_table <- long_table[, c("group", "category", "year", "count")]
+colnames(long_table) <- c("category", "count", "group")
+long_table <- long_table[, c("group", "category", "count")]
 
 # save the final table
 write_csv(long_table, here::here("output", "sense_checks", "categorical_checks.csv"))
@@ -67,7 +67,7 @@ write_csv(long_table, here::here("output", "sense_checks", "categorical_checks.c
 hists <- list()
 
 # define the continuous/date variables you wish to look at 
-vars <- c("age", "salbutamol_quantity", "deregistration_date", "death_date", "censor_date")
+vars <- c("age", "deregistration_date", "death_date", "censor_date")
 
 # loop through variables
 for (var in vars) {
@@ -75,7 +75,7 @@ for (var in vars) {
   # use ggplot() to get histograms for variables of interest
   hists[[var]] <- ggplot(data = df, aes(.data[[var]])) +
     geom_histogram(stat = "bin") +
-    facet_wrap(~year) + theme_bw() +
+    theme_bw() +
     labs(
       x = str_to_title(gsub("_", " ", var)),
       y = "Count"

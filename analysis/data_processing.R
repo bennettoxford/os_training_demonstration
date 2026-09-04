@@ -54,38 +54,12 @@ df <- df %>%
     )
 ) %>% select(-latest_ethnicity_group)
 
-# pivot the data to have multiple rows per patient
-df_long <- df %>% 
-  pivot_longer(
-    # select columns relating to salbutamol quantity
-    cols = starts_with("salbutamol"),
-    # create column containing the year number
-    names_to = "year", 
-    # removes the prefix from the column names so year = {1, 2} etc
-    names_prefix = "salbutamol_quantity_y", 
-    # create column of corresponding inhaler quantities for each year
-    values_to = "salbutamol_quantity" 
-  )
-
 # reorder the columns in a way that is logical for future work
 col_order <- c("patient_id", "age", "age_group", "sex", "ethnicity", "imd_quintile", 
-               "asthma", "copd", "salbutamol_quantity", "year", "deregistration_date",
-               "death_date", "censor", "censor_date")
-df_long <- df_long[, col_order]
-
-# remove rows in year two for patients censored in year 1
-df_long <- df_long %>% 
-  mutate(
-    # convert year to integer
-    year = as.integer(year),
-    # define a variable to identify those censored in year 1
-    censored_in_year1 = censor_date < (study_start_date + years(1))
-  ) %>%
-  # drop year 2 rows when censored in year 1
-  filter(!(year == 2 & censored_in_year1)) %>%     
-  select(-censored_in_year1) 
+               "asthma", "deregistration_date", "death_date", "censor", "censor_date")
+df <- df[, col_order]
 
 # save the processed data
 write_feather(
-  df_long, here::here("output", "dataset_processed.arrow")
+  df, here::here("output", "dataset_processed.arrow")
 )

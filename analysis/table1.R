@@ -33,23 +33,13 @@ gt_table <- df %>%
   arrange(imd_quintile, age_group) %>% 
   # create a summary table by year
   tbl_summary(
-    by = year,
     label = list(age = "Patient Age",
                  age_group = "Age Group",
                  sex = "Sex",
                  ethnicity = "Ethnicity",
                  imd_quintile = "IMD Quintile",
-                 asthma = "Asthma Diagnosis",
-                 copd = "COPD Diagnosis",
-                 salbutamol_quantity = "Salbutamol Quantity"),
-    # get average salbulatmol quantity per year for population
-    statistic = list(salbutamol_quantity ~ "{mean} ({sd})")
+                 asthma = "Asthma Diagnosis")
     )  %>% 
-  # add the study years into header
-  modify_header(list(
-      stat_1 ~ "**2020-21**, N = {n}",
-      stat_2 ~ "**2021-22**, N = {n}"
-    )) %>% 
   # convert to format which can be saved as csv
   as_tibble()
 

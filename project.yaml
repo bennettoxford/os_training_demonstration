@@ -1,27 +1,6 @@
-version: '4.0'
+version: '5.0'
 
 actions:
-
-  # action which creates a dataset using ehrQL; this is just for getting numbers of patients being
-  # included/excluded. This is not going to be tested and will use ehrQL generated dummy data when
-  # the pipeline is run locally.
-  generate_population:
-    run: >
-      ehrql:v1 generate-dataset
-      analysis/inclusion_definition.py
-      --output output/population.arrow
-    outputs:
-      highly_sensitive:
-        dataset: output/population.arrow
-
-  # action which will agreggate and summarise the data from generate_population
-  process_population:
-    run: r:v2 analysis/inclusion_processing.R
-    needs:
-    - generate_population
-    outputs:
-      moderately_sensitive:
-        dataset: output/population_processed.csv
 
   # action which creates dataset using ehrQL, which will use user provided dummy tables from 'dummy_tables' folder
   # when run locally. Adding the --test-data-file means that this action also tests the dataset definition automatically.
@@ -29,7 +8,6 @@ actions:
     run: >
         ehrql:v1 generate-dataset
         analysis/dataset_definition.py
-        --test-data-file analysis/test_dataset_definition.py
         --dummy-tables dummy_tables
         --output output/dataset.arrow
     outputs:
@@ -86,34 +64,3 @@ actions:
     outputs:
       moderately_sensitive:
         dataset: output/measures/measure_*.csv
-
-#  # action which generates plots of measures across conditions and age groups;
-#  # this is an action you could use if visualisation was wanted to be in the secure server.
-#  # Typically visualisations are done outside of the secure server for computational efficiency and
-#  # ease of re-running them.
-#  visualise_measures:
-#    run: r:v2 analysis/measures_visualisation.R
-#    needs:
-#    - generate_measures
-#    outputs:
-#      moderately_sensitive:
-#        png: output/measures/measures_by_*.png
-
-  # action which creates decile charts for measures
-  create_deciles_charts:
-    run: >
-      python:v1 analysis/deciles_charts.py
-        --input-files output/measures/measure_*_monthly.csv
-        --output-dir output/measures
-    config:
-      show_outer_percentiles: false
-      tables:
-        output: true
-      charts:
-        output: true
-    needs: 
-    - generate_measures
-    outputs:
-      moderately_sensitive:
-        deciles_tables: output/measures/deciles_*_*.csv
-        deciles_charts: output/measures/deciles_*_*.png
