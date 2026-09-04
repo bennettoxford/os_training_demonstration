@@ -1,86 +1,6 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
 version: '5.0'
 
 actions:
-
-  # action which creates dataset using ehrQL, which will use user provided dummy tables from 'dummy_tables' folder
-  # when run locally. Adding the --test-data-file means that this action also tests the dataset definition automatically.
-  generate_dataset:
-    run: >
-        ehrql:v1 generate-dataset
-        analysis/dataset_definition.py
-        --dummy-tables dummy_tables
-        --output output/dataset.arrow
-    outputs:
-      highly_sensitive:
-        population: output/dataset.arrow
-
-  # action which will process the dataset from generate_dataset, so data is formatted as desired
-  # for downstream analysis
-  process_dataset:
-    run: r:v2 analysis/data_processing.R
-    needs:
-    - generate_dataset
-    outputs:
-      highly_sensitive:
-        dataset: output/dataset_processed.arrow
-
-  # action which will provide sense checks for the data - not intended for release
-=======
-=======
->>>>>>> refs/remotes/origin/pipeline_2
-version: '4.0'
-
-actions:
-
-  # actions which create a dataset using ehrQL, this is just for getting numbers of patients being
-  # included/excluded, this is not going to be tested and will use ehrQL generated dummy data
-  
-  ## pre-pandemic period
-  generate_population_pre_pandemic:
-    run: >
-      ehrql:v1 generate-dataset
-      analysis/inclusion_definition.py
-      --output output/population_pre_pandemic.arrow
-      -- --period pre_pandemic_start pre_pandemic_end
-    outputs:
-      highly_sensitive:
-        dataset: output/population_pre_pandemic.arrow
-
-  ## pandemic period
-  generate_population_pandemic:
-    run: >
-      ehrql:v1 generate-dataset
-      analysis/inclusion_definition.py
-      --output output/population_pandemic.arrow
-      -- --period pandemic_start pandemic_end
-    outputs:
-      highly_sensitive:
-        dataset: output/population_pandemic.arrow
-
-  ## post-pandemic period
-  generate_population_post_pandemic:
-    run: >
-      ehrql:v1 generate-dataset
-      analysis/inclusion_definition.py
-      --output output/population_post_pandemic.arrow
-      -- --period post_pandemic_start post_pandemic_end
-    outputs:
-      highly_sensitive:
-        dataset: output/population_post_pandemic.arrow
-
-  # action which will agreggate and summarise the data from generate_population actions
-  # this is equivalent to running three separate aggregation actions which take command line arguments
-  process_population:
-    run: r:v2 analysis/inclusion_processing.R
-    needs:
-    - generate_population_pre_pandemic
-    - generate_population_pandemic
-    - generate_population_post_pandemic
-    outputs:
-      moderately_sensitive:
-        dataset: output/population_processed_*.csv
 
   # actions which creates dataset using ehrQL, will use user provided dummy tables from 'dummy_tables' folder
   # will also test the dataset definition automatically
@@ -90,7 +10,6 @@ actions:
     run: >
         ehrql:v1 generate-dataset
         analysis/dataset_definition.py
-        --test-data-file analysis/test_dataset_definition_pre_pandemic.py
         --dummy-tables dummy_tables/dummy_tables_pre_pandemic
         --output output/dataset_pre_pandemic.arrow
         -- --period pre_pandemic_start pre_pandemic_end
@@ -103,7 +22,6 @@ actions:
     run: >
         ehrql:v1 generate-dataset
         analysis/dataset_definition.py
-        --test-data-file analysis/test_dataset_definition_pandemic.py
         --dummy-tables dummy_tables/dummy_tables_pandemic
         --output output/dataset_pandemic.arrow
         -- --period pandemic_start pandemic_end
@@ -116,7 +34,6 @@ actions:
     run: >
         ehrql:v1 generate-dataset
         analysis/dataset_definition.py
-        --test-data-file analysis/test_dataset_definition_post_pandemic.py
         --dummy-tables dummy_tables/dummy_tables_post_pandemic
         --output output/dataset_post_pandemic.arrow
         -- --period post_pandemic_start post_pandemic_end
@@ -138,27 +55,12 @@ actions:
 
   # action which will provide sense checks for the data - not intended for release
   # this is equivalent to running three separate checking actions which take command line arguments
-<<<<<<< HEAD
->>>>>>> Initialize pipeline_2
-=======
->>>>>>> refs/remotes/origin/pipeline_2
   check_dataset:
     run: r:v2 analysis/sense_checks/internal_checks.R
     needs:
     - process_dataset
     outputs:
       moderately_sensitive:
-<<<<<<< HEAD
-<<<<<<< HEAD
-        categorical: output/sense_checks/categorical_checks.csv
-        continuous: output/sense_checks/*_hist.png
-        dates: output/sense_checks/date_checks.csv
-        missing: output/sense_checks/missing_values.csv
-
-  # action which will aggregate the study population information to create a classic table 1
-=======
-=======
->>>>>>> refs/remotes/origin/pipeline_2
         categorical: output/sense_checks/categorical_checks_*.csv
         continuous: output/sense_checks/*_hist_*.png
         dates: output/sense_checks/date_checks_*.csv
@@ -166,55 +68,22 @@ actions:
 
   # action which will aggregate the study population information to create a classic table 1
   # this is equivalent to running three separate summarising actions which take command line arguments
-<<<<<<< HEAD
->>>>>>> Initialize pipeline_2
-=======
->>>>>>> refs/remotes/origin/pipeline_2
   summarise_dataset:
     run: r:v2 analysis/table1.R
     needs:
     - process_dataset
     outputs:
       moderately_sensitive:
-<<<<<<< HEAD
-<<<<<<< HEAD
-        table: output/table1.csv
-
-  # action which will run a linear regression model, tidy the results and save it as a csv
-=======
-=======
->>>>>>> refs/remotes/origin/pipeline_2
         table: output/table1_*.csv
 
   # action which will run a linear regression model, tidy the results and save it as a csv
   # this is equivalent to running three separate modelling actions which take command line arguments
-<<<<<<< HEAD
->>>>>>> Initialize pipeline_2
-=======
->>>>>>> refs/remotes/origin/pipeline_2
   analyse_dataset:
     run: r:v2 analysis/model.R
     needs:
     - process_dataset
     outputs:
       moderately_sensitive:
-<<<<<<< HEAD
-<<<<<<< HEAD
-        model: output/model_results.csv
-
-  # action which creates a series of measures across conditions and age groups
-  generate_measures:
-    run: >
-        ehrql:v1 generate-measures
-        analysis/measures_definition.py
-        --dummy-tables dummy_tables
-        --output output/measures/:csv
-    outputs:
-      moderately_sensitive:
-        dataset: output/measures/measure_*.csv
-=======
-=======
->>>>>>> refs/remotes/origin/pipeline_2
         model: output/model_results_*.csv
 
   # actions which create a series of measures across conditions and age groups
@@ -254,66 +123,3 @@ actions:
     outputs:
       moderately_sensitive:
         dataset: output/measures/measures_post_pandemic/measure_*.csv
-
-  # actions which create decile charts for measures
-
-  ## pre-pandemic period
-  create_deciles_charts_pre_pandemic:
-    run: >
-      python:v1 analysis/deciles_charts.py
-        --input-files output/measures/measures_pre_pandemic/measure_*_monthly.csv
-        --output-dir output/measures/measures_pre_pandemic
-    config:
-      show_outer_percentiles: false
-      tables:
-        output: true
-      charts:
-        output: true
-    needs: 
-    - generate_measures_pre_pandemic
-    outputs:
-      moderately_sensitive:
-        deciles_tables: output/measures/measures_pre_pandemic/deciles_*_*.csv
-        deciles_charts: output/measures/measures_pre_pandemic/deciles_*_*.png
-
-  ## pandemic period
-  create_deciles_charts_pandemic:
-    run: >
-      python:v1 analysis/deciles_charts.py
-        --input-files output/measures/measures_pandemic/measure_*_monthly.csv
-        --output-dir output/measures/measures_pandemic
-    config:
-      show_outer_percentiles: false
-      tables:
-        output: true
-      charts:
-        output: true
-    needs: 
-    - generate_measures_pandemic
-    outputs:
-      moderately_sensitive:
-        deciles_tables: output/measures/measures_pandemic/deciles_*_*.csv
-        deciles_charts: output/measures/measures_pandemic/deciles_*_*.png
-
-  ## post-pandemic period
-  create_deciles_charts_post_pandemic:
-    run: >
-      python:v1 analysis/deciles_charts.py
-        --input-files output/measures/measures_post_pandemic/measure_*_monthly.csv
-        --output-dir output/measures/measures_post_pandemic
-    config:
-      show_outer_percentiles: false
-      tables:
-        output: true
-      charts:
-        output: true
-    needs: 
-    - generate_measures_post_pandemic
-    outputs:
-      moderately_sensitive:
-        deciles_tables: output/measures/measures_post_pandemic/deciles_*_*.csv
-        deciles_charts: output/measures/measures_post_pandemic/deciles_*_*.png
-<<<<<<< HEAD
->>>>>>> Initialize pipeline_2
-=======
->>>>>>> refs/remotes/origin/pipeline_2
