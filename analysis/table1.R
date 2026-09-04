@@ -31,7 +31,7 @@ gt_table <- df %>%
             level = "Unknown") %>% 
   # order IMD and age group for table
   arrange(imd_quintile, age_group) %>% 
-  # create a summary table by year
+  # create a summary table
   tbl_summary(
     label = list(age = "Patient Age",
                  age_group = "Age Group",
