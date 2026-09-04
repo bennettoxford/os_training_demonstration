@@ -8,6 +8,7 @@ library(ggplot2)
 fs::dir_create(here::here("output", "sense_checks"))
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # import processed dataset
 df <- read_feather(
   here::here("output", "dataset_processed.arrow")
@@ -154,6 +155,8 @@ df_dates <- df %>%
 # save the information
 write_csv(df_dates, here::here("output", "sense_checks", "date_checks.csv"))
 =======
+=======
+>>>>>>> refs/remotes/origin/pipeline_2
 # create a function to do all the sense checking
 sense_checking <- function(period) {
 
@@ -316,4 +319,7 @@ sense_checking("pandemic")
 
 ## post-pandemic period
 sense_checking("post_pandemic")
+<<<<<<< HEAD
 >>>>>>> Initialize pipeline_2
+=======
+>>>>>>> refs/remotes/origin/pipeline_2

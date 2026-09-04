@@ -1,8 +1,11 @@
 # What?
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 This folder contains 'dummy tables' which have been generated using the OpenSAFELY command line interface (CLI) through the follow command: `opensafely exec ehrql:v1 create-dummy-tables analysis/dataset_definition.py dummy_tables`. These tables have then been modified in the `enrich_dummy_tables.py` script, which needs to be run locally within the terminal every time you need to get new ehrQL tables.
 =======
+=======
+>>>>>>> refs/remotes/origin/pipeline_2
 This folder contains 'dummy tables' which have been generated using the OpenSAFELY command line interface (CLI) through the follow commands:
 
 - `opensafely exec ehrql:v1 create-dummy-tables analysis/dataset_definition.py dummy_tables/dummy_tables_pre_pandemic -- --period pre_pandemic_start pre_pandemic_end`
@@ -10,7 +13,10 @@ This folder contains 'dummy tables' which have been generated using the OpenSAFE
 - `opensafely exec ehrql:v1 create-dummy-tables analysis/dataset_definition.py dummy_tables/dummy_tables_post_pandemic -- --period post_pandemic_start post_pandemic_end`
 
 These tables have then been modified in the `enrich_dummy_tables.py` script, which needs to be run locally within the terminal every time you need to get new ehrQL tables.
+<<<<<<< HEAD
 >>>>>>> Initialize pipeline_2
+=======
+>>>>>>> refs/remotes/origin/pipeline_2
 
 # Why?
 

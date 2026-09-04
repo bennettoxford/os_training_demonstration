@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 version: '5.0'
 
 actions:
@@ -27,6 +28,8 @@ actions:
 
   # action which will provide sense checks for the data - not intended for release
 =======
+=======
+>>>>>>> refs/remotes/origin/pipeline_2
 version: '4.0'
 
 actions:
@@ -135,13 +138,17 @@ actions:
 
   # action which will provide sense checks for the data - not intended for release
   # this is equivalent to running three separate checking actions which take command line arguments
+<<<<<<< HEAD
 >>>>>>> Initialize pipeline_2
+=======
+>>>>>>> refs/remotes/origin/pipeline_2
   check_dataset:
     run: r:v2 analysis/sense_checks/internal_checks.R
     needs:
     - process_dataset
     outputs:
       moderately_sensitive:
+<<<<<<< HEAD
 <<<<<<< HEAD
         categorical: output/sense_checks/categorical_checks.csv
         continuous: output/sense_checks/*_hist.png
@@ -150,6 +157,8 @@ actions:
 
   # action which will aggregate the study population information to create a classic table 1
 =======
+=======
+>>>>>>> refs/remotes/origin/pipeline_2
         categorical: output/sense_checks/categorical_checks_*.csv
         continuous: output/sense_checks/*_hist_*.png
         dates: output/sense_checks/date_checks_*.csv
@@ -157,7 +166,10 @@ actions:
 
   # action which will aggregate the study population information to create a classic table 1
   # this is equivalent to running three separate summarising actions which take command line arguments
+<<<<<<< HEAD
 >>>>>>> Initialize pipeline_2
+=======
+>>>>>>> refs/remotes/origin/pipeline_2
   summarise_dataset:
     run: r:v2 analysis/table1.R
     needs:
@@ -165,21 +177,28 @@ actions:
     outputs:
       moderately_sensitive:
 <<<<<<< HEAD
+<<<<<<< HEAD
         table: output/table1.csv
 
   # action which will run a linear regression model, tidy the results and save it as a csv
 =======
+=======
+>>>>>>> refs/remotes/origin/pipeline_2
         table: output/table1_*.csv
 
   # action which will run a linear regression model, tidy the results and save it as a csv
   # this is equivalent to running three separate modelling actions which take command line arguments
+<<<<<<< HEAD
 >>>>>>> Initialize pipeline_2
+=======
+>>>>>>> refs/remotes/origin/pipeline_2
   analyse_dataset:
     run: r:v2 analysis/model.R
     needs:
     - process_dataset
     outputs:
       moderately_sensitive:
+<<<<<<< HEAD
 <<<<<<< HEAD
         model: output/model_results.csv
 
@@ -194,6 +213,8 @@ actions:
       moderately_sensitive:
         dataset: output/measures/measure_*.csv
 =======
+=======
+>>>>>>> refs/remotes/origin/pipeline_2
         model: output/model_results_*.csv
 
   # actions which create a series of measures across conditions and age groups
@@ -292,4 +313,7 @@ actions:
       moderately_sensitive:
         deciles_tables: output/measures/measures_post_pandemic/deciles_*_*.csv
         deciles_charts: output/measures/measures_post_pandemic/deciles_*_*.png
+<<<<<<< HEAD
 >>>>>>> Initialize pipeline_2
+=======
+>>>>>>> refs/remotes/origin/pipeline_2

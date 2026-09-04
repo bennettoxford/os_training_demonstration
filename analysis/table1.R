@@ -6,6 +6,7 @@ library(gtsummary)
 library(readr)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # import dataset
 df <- read_feather(
   here::here("output", "dataset_processed.arrow")
@@ -47,6 +48,8 @@ gt_table <- df %>%
 # save the file
 write_csv(gt_table, path = here::here("output", "table1.csv"))
 =======
+=======
+>>>>>>> refs/remotes/origin/pipeline_2
 # use a function to create table 1
 describe_dataset <- function(period) {
 
@@ -111,4 +114,7 @@ describe_dataset("pandemic")
 
 ## post-pandemic period
 describe_dataset("post_pandemic")
+<<<<<<< HEAD
 >>>>>>> Initialize pipeline_2
+=======
+>>>>>>> refs/remotes/origin/pipeline_2

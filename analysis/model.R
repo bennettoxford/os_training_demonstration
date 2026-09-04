@@ -6,6 +6,7 @@ library(broom)
 library(broom.helpers)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # import dataset
 df <- read_feather(
   here::here("output", "dataset_processed.arrow")
@@ -43,6 +44,8 @@ model_tidy <- model %>%
 # save the tidied model
 write_csv(model_tidy, here::here("output", "model_results.csv"))
 =======
+=======
+>>>>>>> refs/remotes/origin/pipeline_2
 # use a function to model the dataset
 model_dataset <- function(period) {
 
@@ -95,4 +98,7 @@ model_dataset("pandemic")
 
 ## post-pandemic period
 model_dataset("post_pandemic")
+<<<<<<< HEAD
 >>>>>>> Initialize pipeline_2
+=======
+>>>>>>> refs/remotes/origin/pipeline_2

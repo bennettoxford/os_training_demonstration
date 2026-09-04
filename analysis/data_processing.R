@@ -5,6 +5,7 @@ library(arrow)
 library(lubridate)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # import dataset
 df <- read_feather(
     here::here("output", "dataset.arrow")
@@ -65,6 +66,8 @@ write_feather(
   df, here::here("output", "dataset_processed.arrow")
 )
 =======
+=======
+>>>>>>> refs/remotes/origin/pipeline_2
 # use a function to process the dataset
 process_dataset <- function(period) {
 
@@ -178,4 +181,7 @@ process_dataset("pandemic")
 
 ## post-pandemic period
 process_dataset("post_pandemic")
+<<<<<<< HEAD
 >>>>>>> Initialize pipeline_2
+=======
+>>>>>>> refs/remotes/origin/pipeline_2

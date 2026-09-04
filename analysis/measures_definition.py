@@ -121,7 +121,7 @@ measures.define_measure(
 
 # define the measure of interest: monthly incident asthma, by age group
 measures.define_measure(
-    "measure_had_prescription_by_age_monthly",
+    "measure_has_incident_asthma_by_age_monthly",
     numerator = diagnosed_with_asthma,
     group_by = {"age_group": age_group},
     intervals = intervals_months,
